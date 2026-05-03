@@ -1,0 +1,23 @@
+:root {
+  /* Primary */
+  --purple:       #7C6FF7;
+  --purple-light: #F0EDFF;
+  --purple-dark:  #534AB7;
+
+  /* Accent */
+  --coral: #FF7B6B;
+  --mint:  #4CC9B0;
+  --amber: #F9C74F;
+
+  /* Neutral */
+  --bg:             #F5F0FF;
+  --surface:        #FFFFFF;
+  --text-primary:   #2C2330;
+  --text-secondary: #9B8FAC;
+  --border:         #E2DCF5;
+
+  /* Blob decorations */
+  --blob-purple: #DDD8FB;
+  --blob-coral:  #FFD6C8;
+  --blob-mint:   #C8F0E8;
+}

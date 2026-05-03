@@ -7,14 +7,14 @@ export function PhotoProvider({ children }) {
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [frameId, setFrameId] = useState('frame-white');
   const [frameColor, setFrameColor] = useState('#FFFFFF');
-  const [texts, setTexts] = useState([]);
+  const [stickers, setStickers] = useState([]);
 
   const reset = () => {
     setCapturedPhotos([]);
     setSelectedPhotos([]);
     setFrameId('frame-white');
     setFrameColor('#FFFFFF');
-    setTexts([]);
+    setStickers([]);
   };
 
   return (
@@ -23,7 +23,7 @@ export function PhotoProvider({ children }) {
       selectedPhotos, setSelectedPhotos,
       frameId, setFrameId,
       frameColor, setFrameColor,
-      texts, setTexts,
+      stickers, setStickers,
       reset,
     }}>
       {children}

@@ -1,36 +1,70 @@
 .page {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
-  background: #1a1a1a;
+  min-height: 100vh;
+  background: #F5F0FF;
+  position: relative;
+  overflow: hidden;
 }
 
+/* ── Header ── */
 .header {
+  position: relative;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 16px 20px;
+  padding: 20px 20px 12px;
   flex-shrink: 0;
+  z-index: 1;
 }
 
-.title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #fff;
+.headerText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.brand {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--purple);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.headerSub {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
 }
 
 .step {
-  font-size: 14px;
-  color: #999;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--purple);
+  background: var(--purple-light);
+  border-radius: 999px;
+  padding: 3px 11px;
 }
 
+/* ── Viewfinder ── */
 .viewfinder {
   position: relative;
-  width: 100%;
+  margin: 0 16px;
+  width: calc(100% - 32px);
   aspect-ratio: 518 / 618;
   background: #000;
   overflow: hidden;
   flex-shrink: 0;
+  border-radius: 20px;
+  border: 2px solid var(--border);
+  z-index: 1;
 }
 
 .video {
@@ -40,83 +74,140 @@
   display: block;
 }
 
+
 .loading {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
-.thumbnailRow {
+/* ── Bottom Row 1: timer chips + thumbnails ── */
+.bottomRow1 {
   display: flex;
-  gap: 8px;
-  padding: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-top: 12px;
   flex-shrink: 0;
+  z-index: 10;
+}
+
+.timerChips {
+  display: flex;
+  gap: 6px;
+}
+
+.timerChipsDisabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.timerChip {
+  background: #F0EDFF;
+  color: #9B8FAC;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.timerChipActive {
+  background: var(--purple);
+  color: #FFFFFF;
+}
+
+.thumbsGroup {
+  display: flex;
+  gap: 6px;
 }
 
 .thumb {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   object-fit: cover;
-  border-radius: 10px;
-  flex-shrink: 0;
+  border-radius: 8px;
+  display: block;
+  border: 1.5px solid var(--border);
 }
 
 .thumbEmpty {
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px dashed rgba(255, 255, 255, 0.2);
+  background: var(--surface);
+  border: 1.5px dashed #C4BDEE;
+  cursor: pointer;
 }
 
-.controls {
-  display: flex;
+/* ── Bottom Row 2: flip + shutter ── */
+.bottomRow2 {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: center;
-  gap: 32px;
-  padding: 16px 20px;
+  padding: 0 32px;
+  margin-top: 16px;
+  margin-bottom: 24px;
   flex-shrink: 0;
+  z-index: 10;
 }
 
 .flipBtn {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+  background: var(--purple-light);
+  color: var(--purple);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.1s;
+  justify-self: end;
+  margin-right: 20px;
 }
 
+.flipBtn:active {
+  transform: scale(0.96);
+}
+
+/* iPhone-style shutter: transparent outer ring + filled inner circle */
 .shutterBtn {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #fff;
-  border: 4px solid rgba(255,255,255,0.4);
-  box-shadow: 0 0 0 3px #fff;
-  transition: transform 0.1s;
+  background: transparent;
+  border: 3px solid var(--purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.1s;
 }
 
-.shutterBtn:active {
-  transform: scale(0.92);
+.shutterBtn::after {
+  content: '';
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--purple);
+  transition: transform 0.15s ease;
+}
+
+.shutterBtn:active::after {
+  transform: scale(0.88);
 }
 
 .shutterBtn:disabled {
   opacity: 0.4;
 }
 
-.placeholder {
-  width: 48px;
-  height: 48px;
-}
-
+/* ── Error screen ── */
 .errorScreen {
   display: flex;
   flex-direction: column;
@@ -126,6 +217,7 @@
   padding: 32px;
   gap: 12px;
   text-align: center;
+  background: var(--bg);
 }
 
 .errorIcon {
@@ -133,22 +225,126 @@
 }
 
 .errorTitle {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .errorDesc {
   font-size: 14px;
-  color: #999;
+  color: var(--text-secondary);
 }
 
 .retryBtn {
   margin-top: 16px;
-  padding: 12px 32px;
-  background: #FF6B9D;
+  padding: 0 32px;
+  height: 54px;
+  background: var(--purple);
   color: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 15px;
   font-weight: 600;
+  transition: transform 0.1s;
+}
+
+.retryBtn:active {
+  transform: scale(0.96);
+}
+
+/* ── Retake mode ── */
+.stepRetake {
+  background: #FFF0EE;
+  color: #FF7B6B;
+  white-space: nowrap;
+}
+
+.viewfinderRetake {
+  border-color: #FF7B6B;
+}
+
+.thumbWrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.thumbActive {
+  border-color: #FF7B6B !important;
+}
+
+.thumbOverlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: rgba(44, 35, 48, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.thumbWrap:hover .thumbOverlay,
+.thumbOverlayActive {
+  opacity: 1;
+}
+
+.retakeIcon {
+  font-size: 18px;
+  color: #FFFFFF;
+  line-height: 1;
+}
+
+/* ── Countdown overlay ── */
+.countdownOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.countdownBubble {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(124, 111, 247, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes countdownPop {
+  from { transform: scale(1.2); opacity: 0.7; }
+  to   { transform: scale(1.0); opacity: 1; }
+}
+
+.countdownNum {
+  font-size: 96px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1;
+  animation: countdownPop 0.3s ease-out forwards;
+}
+
+/* ── Flash effect ── */
+@keyframes flashAnim {
+  0%   { opacity: 0; }
+  25%  { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  background: #FFFFFF;
+  pointer-events: none;
+  z-index: 10;
+  animation: flashAnim 0.25s ease-out forwards;
 }

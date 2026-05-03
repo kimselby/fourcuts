@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCamera } from '../hooks/useCamera';
 import { usePhoto } from '../context/PhotoContext';
+import FloatingShapes from '../components/FloatingShapes';
 import styles from './CameraPage.module.css';
 
 const MAX_PHOTOS = 4;
@@ -11,6 +12,12 @@ export default function CameraPage() {
   const { videoRef, start, stop, flip, capture, error, isReady } = useCamera();
   const { capturedPhotos, setCapturedPhotos, setSelectedPhotos, reset } = usePhoto();
   const hasStarted = useRef(false);
+  const timersRef = useRef([]);
+
+  const [countdown, setCountdown] = useState(null);
+  const [isFlashing, setIsFlashing] = useState(false);
+  const [retakeIndex, setRetakeIndex] = useState(null);
+  const [timerSeconds, setTimerSeconds] = useState(0);
 
   useEffect(() => {
     if (!hasStarted.current) {
@@ -18,7 +25,10 @@ export default function CameraPage() {
       reset();
       start();
     }
-    return () => stop();
+    return () => {
+      stop();
+      timersRef.current.forEach(clearTimeout);
+    };
   }, []);
 
   useEffect(() => {
@@ -29,10 +39,57 @@ export default function CameraPage() {
   }, [capturedPhotos.length]);
 
   const handleCapture = () => {
-    if (capturedPhotos.length >= MAX_PHOTOS) return;
-    const dataUrl = capture();
-    if (dataUrl) setCapturedPhotos(prev => [...prev, dataUrl]);
+    if (countdown !== null) return;
+    if (retakeIndex === null && capturedPhotos.length >= MAX_PHOTOS) return;
+
+    const captureRetakeIdx = retakeIndex;
+
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+
+    const doCapture = () => {
+      setCountdown(null);
+      setIsFlashing(true);
+      timersRef.current.push(setTimeout(() => {
+        const dataUrl = capture();
+        if (dataUrl) {
+          if (captureRetakeIdx !== null) {
+            setCapturedPhotos(prev => {
+              const next = [...prev];
+              next[captureRetakeIdx] = dataUrl;
+              return next;
+            });
+            setRetakeIndex(null);
+          } else {
+            setCapturedPhotos(prev => [...prev, dataUrl]);
+          }
+        }
+        timersRef.current.push(setTimeout(() => setIsFlashing(false), 200));
+      }, 80));
+    };
+
+    if (timerSeconds === 0) {
+      doCapture();
+      return;
+    }
+
+    setCountdown(timerSeconds);
+    for (let i = 1; i < timerSeconds; i++) {
+      timersRef.current.push(setTimeout(() => setCountdown(timerSeconds - i), i * 1000));
+    }
+    timersRef.current.push(setTimeout(doCapture, timerSeconds * 1000));
   };
+
+  const handleThumbTap = (i) => {
+    if (countdown !== null) return;
+    if (capturedPhotos[i]) {
+      setRetakeIndex(prev => prev === i ? null : i);
+    } else {
+      setRetakeIndex(null);
+    }
+  };
+
+  const isRetakeMode = retakeIndex !== null;
 
   if (error === 'permission') {
     return (
@@ -47,12 +104,21 @@ export default function CameraPage() {
 
   return (
     <div className={styles.page}>
+      <FloatingShapes />
+
       <header className={styles.header}>
-        <span className={styles.title}>촬영하기</span>
-        <span className={styles.step}>{capturedPhotos.length} / {MAX_PHOTOS}</span>
+        <div className={styles.headerText}>
+          <span className={styles.brand}>Selby's Fourcuts ✦</span>
+          <span className={styles.headerSub}>나만의 네컷 사진관</span>
+        </div>
+        <span className={`${styles.step} ${isRetakeMode ? styles.stepRetake : ''}`}>
+          {isRetakeMode
+            ? `재촬영 중 · ${retakeIndex + 1}번째`
+            : `${capturedPhotos.length} / ${MAX_PHOTOS}`}
+        </span>
       </header>
 
-      <div className={styles.viewfinder}>
+      <div className={`${styles.viewfinder} ${isRetakeMode ? styles.viewfinderRetake : ''}`}>
         <video
           ref={videoRef}
           className={styles.video}
@@ -63,17 +129,52 @@ export default function CameraPage() {
         {!isReady && (
           <div className={styles.loading}>카메라 연결 중...</div>
         )}
+        {countdown !== null && (
+          <div className={styles.countdownOverlay}>
+            <div className={styles.countdownBubble}>
+              <span className={styles.countdownNum} key={countdown}>{countdown}</span>
+            </div>
+          </div>
+        )}
+        {isFlashing && <div className={styles.flash} />}
       </div>
 
-      <div className={styles.thumbnailRow}>
-        {Array.from({ length: MAX_PHOTOS }).map((_, i) => (
-          capturedPhotos[i]
-            ? <img key={i} src={capturedPhotos[i]} className={styles.thumb} alt={`촬영 ${i + 1}`} />
-            : <div key={i} className={styles.thumbEmpty} />
-        ))}
+      {/* Row 1: timer chips (left) + thumbnails (right) */}
+      <div className={styles.bottomRow1}>
+        <div className={`${styles.timerChips} ${countdown !== null ? styles.timerChipsDisabled : ''}`}>
+          {[{ label: '즉시', val: 0 }, { label: '3초', val: 3 }, { label: '5초', val: 5 }].map(({ label, val }) => (
+            <button
+              key={val}
+              className={`${styles.timerChip} ${timerSeconds === val ? styles.timerChipActive : ''}`}
+              onClick={() => setTimerSeconds(val)}
+              disabled={countdown !== null}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className={styles.thumbsGroup}>
+          {Array.from({ length: MAX_PHOTOS }).map((_, i) => (
+            capturedPhotos[i] ? (
+              <div key={i} className={styles.thumbWrap} onClick={() => handleThumbTap(i)}>
+                <img
+                  src={capturedPhotos[i]}
+                  className={`${styles.thumb} ${retakeIndex === i ? styles.thumbActive : ''}`}
+                  alt={`촬영 ${i + 1}`}
+                />
+                <div className={`${styles.thumbOverlay} ${retakeIndex === i ? styles.thumbOverlayActive : ''}`}>
+                  <span className={styles.retakeIcon}>↺</span>
+                </div>
+              </div>
+            ) : (
+              <div key={i} className={styles.thumbEmpty} onClick={() => handleThumbTap(i)} />
+            )
+          ))}
+        </div>
       </div>
 
-      <div className={styles.controls}>
+      {/* Row 2: flip (left) + shutter (center) */}
+      <div className={styles.bottomRow2}>
         <button className={styles.flipBtn} onClick={flip} aria-label="카메라 전환">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M1 4v6h6M23 20v-6h-6" />
@@ -83,10 +184,10 @@ export default function CameraPage() {
         <button
           className={styles.shutterBtn}
           onClick={handleCapture}
-          disabled={!isReady}
+          disabled={!isReady || countdown !== null}
           aria-label="촬영"
         />
-        <div className={styles.placeholder} />
+        <div />
       </div>
     </div>
   );
